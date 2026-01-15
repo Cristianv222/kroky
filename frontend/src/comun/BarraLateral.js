@@ -19,9 +19,6 @@ const BarraLateral = () => {
         { path: '/', icon: 'bi-house-door-fill', label: 'Inicio' },
         { path: '/users', icon: 'bi-people-fill', label: 'Usuarios' },
         { path: '/fast-food', icon: 'bi-cart-fill', label: 'Comida Rápida' },
-        { path: '/hotel', icon: 'bi-building', label: 'Hotel' },
-        { path: '/pool', icon: 'bi-water', label: 'Piscinas' },
-        { path: '/restaurant', icon: 'bi-cup-straw', label: 'Restaurante' },
     ];
 
     // Estilos inline
@@ -210,8 +207,8 @@ const BarraLateral = () => {
     return (
         <>
             {/* Agregar Bootstrap Icons */}
-            <link 
-                rel="stylesheet" 
+            <link
+                rel="stylesheet"
                 href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
             />
 
@@ -221,9 +218,9 @@ const BarraLateral = () => {
                     <div style={styles.brandContainer}>
                         <div style={styles.brandLogo}>
                             <i className="bi bi-stars" style={styles.brandIcon}></i>
-                            <span style={styles.brandText}>Aurora System</span>
+                            <span style={styles.brandText}>Kroky</span>
                         </div>
-                        <button 
+                        <button
                             style={styles.btnToggle}
                             onClick={toggleSidebar}
                             title={isCollapsed ? 'Expandir' : 'Contraer'}
@@ -262,8 +259,8 @@ const BarraLateral = () => {
                         const active = isActive(item.path);
                         return (
                             <li key={item.path} style={styles.navItem}>
-                                <Link 
-                                    to={item.path} 
+                                <Link
+                                    to={item.path}
                                     title={isCollapsed ? item.label : ''}
                                     style={{
                                         ...styles.navLink,
@@ -284,8 +281,8 @@ const BarraLateral = () => {
                                         }
                                     }}
                                 >
-                                    <i 
-                                        className={`bi ${item.icon}`} 
+                                    <i
+                                        className={`bi ${item.icon}`}
                                         style={{
                                             ...styles.navIcon,
                                             color: active ? '#3b82f6' : 'inherit'
@@ -300,7 +297,7 @@ const BarraLateral = () => {
 
                 {/* Footer con Logout */}
                 <div style={styles.sidebarFooter}>
-                    <button 
+                    <button
                         style={styles.logoutButton}
                         onClick={logout}
                         title="Cerrar Sesión"
@@ -316,7 +313,7 @@ const BarraLateral = () => {
                         <i className="bi bi-box-arrow-right" style={{ fontSize: '1.1rem' }}></i>
                         <span style={styles.navText}>Cerrar Sesión</span>
                     </button>
-                    
+
                     <div style={styles.versionText}>
                         v1.0.0
                     </div>

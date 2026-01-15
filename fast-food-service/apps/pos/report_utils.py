@@ -28,7 +28,8 @@ class ReportGenerator:
             SalesReport instance
         """
         if target_date is None:
-            target_date = timezone.now().date()
+            import pytz
+            target_date = timezone.now().astimezone(pytz.timezone('America/Guayaquil')).date()
         
         from apps.orders.models import Order
         from apps.payments.models import Payment
@@ -45,9 +46,15 @@ class ReportGenerator:
             }
         )
         
+        # Rango de fechas
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
+        start_dt = ecuador_tz.localize(datetime.combine(target_date, datetime.min.time()))
+        end_dt = ecuador_tz.localize(datetime.combine(target_date, datetime.max.time()))
+
         # ============ 2. CONSULTAR ÓRDENES DEL DÍA ============
         orders = Order.objects.filter(
-            created_at__date=target_date,
+            created_at__range=(start_dt, end_dt),
             status__in=['delivered', 'completed']
         ).prefetch_related('items__product')
         
@@ -87,7 +94,7 @@ class ReportGenerator:
         
         # ============ 6. CONSULTAR PAGOS DEL DÍA ============
         payments = Payment.objects.filter(
-            created_at__date=target_date,
+            created_at__range=(start_dt, end_dt),
             status='completed'
         )
         
@@ -164,13 +171,14 @@ class ReportGenerator:
         """Genera ventas agrupadas por hora"""
         from .models import SalesByHour
         from apps.orders.models import Order
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
         
         SalesByHour.objects.filter(sales_report=report).delete()
         
         # Consultar órdenes por hora
         for hour in range(24):
-            hour_start = timezone.make_aware(datetime.combine(target_date, datetime.min.time()))
-            hour_start = hour_start.replace(hour=hour)
+            hour_start = ecuador_tz.localize(datetime.combine(target_date, datetime.min.time())).replace(hour=hour)
             hour_end = hour_start + timedelta(hours=1)
             
             orders_in_hour = Order.objects.filter(
@@ -298,7 +306,8 @@ class ReportGenerator:
     def generate_shift_report(target_date=None):
         """Genera reporte consolidado de turnos por día"""
         if target_date is None:
-            target_date = timezone.now().date()
+            import pytz
+            target_date = timezone.now().astimezone(pytz.timezone('America/Guayaquil')).date()
         
         from .models import Shift, ShiftReport
         
@@ -353,7 +362,8 @@ class ReportGenerator:
             dict: Resultado del cierre
         """
         if target_date is None:
-            target_date = timezone.now().date()
+            import pytz
+            target_date = timezone.now().astimezone(pytz.timezone('America/Guayaquil')).date()
         
         # Generar reporte diario final
         report = ReportGenerator.generate_daily_report(target_date, generated_by)

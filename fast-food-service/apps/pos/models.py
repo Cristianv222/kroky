@@ -896,9 +896,15 @@ class DailySummary(models.Model):
             defaults={'generated_by': generated_by}
         )
         
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
+        from datetime import datetime, time
+        start_dt = ecuador_tz.localize(datetime.combine(date, time.min))
+        end_dt = ecuador_tz.localize(datetime.combine(date, time.max))
+
         # ============ CONSULTAR ÓRDENES DEL DÍA ============
         orders = Order.objects.filter(
-            created_at__date=date,
+            created_at__range=(start_dt, end_dt),
             status__in=['delivered', 'completed']
         ).prefetch_related('items')
         
@@ -964,8 +970,14 @@ class DailySummary(models.Model):
         from apps.orders.models import Order, OrderItem
         from django.db.models import Sum, Avg
         
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
+        from datetime import datetime, time
+        start_dt = ecuador_tz.localize(datetime.combine(date, time.min))
+        end_dt = ecuador_tz.localize(datetime.combine(date, time.max))
+
         orders = Order.objects.filter(
-            created_at__date=date,
+            created_at__range=(start_dt, end_dt),
             status__in=['delivered', 'completed']
         )
         
@@ -1015,9 +1027,12 @@ class DailySummary(models.Model):
         
         sales_by_hour = []
         
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
+        from datetime import datetime
+        
         for hour in range(24):
-            hour_start = timezone.make_aware(datetime.combine(date, datetime.min.time()))
-            hour_start = hour_start.replace(hour=hour)
+            hour_start = ecuador_tz.localize(datetime.combine(date, datetime.min.time())).replace(hour=hour)
             hour_end = hour_start + timedelta(hours=1)
             
             orders_in_hour = Order.objects.filter(
@@ -1111,7 +1126,8 @@ class DailySummary(models.Model):
         """
         if report_type == 'daily':
             if not date:
-                date = timezone.now().date()
+                import pytz
+                date = timezone.now().astimezone(pytz.timezone('America/Guayaquil')).date()
             
             summary, _ = cls.objects.get_or_create(date=date)
             return {
@@ -1124,7 +1140,8 @@ class DailySummary(models.Model):
         elif report_type == 'weekly':
             if not start_date:
                 # Semana actual
-                today = timezone.now().date()
+                import pytz
+                today = timezone.now().astimezone(pytz.timezone('America/Guayaquil')).date()
                 start_date = today - timedelta(days=today.weekday())
                 end_date = start_date + timedelta(days=6)
             
@@ -1150,7 +1167,8 @@ class DailySummary(models.Model):
         
         elif report_type == 'monthly':
             if not year or not month:
-                today = timezone.now().date()
+                import pytz
+                today = timezone.now().astimezone(pytz.timezone('America/Guayaquil')).date()
                 year = today.year
                 month = today.month
             

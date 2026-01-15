@@ -57,6 +57,22 @@ export const getValidDate = (dateValue) => {
 };
 
 // Generar PDF Detallado
+// Obtener fecha actual en zona horaria de Ecuador
+export const getEcuadorDate = () => {
+    const now = new Date();
+    const options = { timeZone: 'America/Guayaquil', year: 'numeric', month: 'numeric', day: 'numeric' };
+    const fmt = new Intl.DateTimeFormat('en-US', options);
+    const parts = fmt.formatToParts(now);
+
+    // Encontrar partes
+    const day = parts.find(p => p.type === 'day').value;
+    const month = parts.find(p => p.type === 'month').value;
+    const year = parts.find(p => p.type === 'year').value;
+
+    // Construir fecha local (Mes es 0-indexado)
+    return new Date(year, month - 1, day);
+};
+
 // Generar PDF Simplificado (Estilo Recibo/Reporte Simple)
 export const generateDetailedPDF = (report, reportType, dateRangeStr) => {
     if (!report) {
@@ -74,7 +90,7 @@ export const generateDetailedPDF = (report, reportType, dateRangeStr) => {
     doc.setTextColor(50);
 
     // Fecha y hora de impresión
-    const printDate = format(new Date(), 'dd/MM/yyyy HH:mm');
+    const printDate = format(getEcuadorDate(), 'dd/MM/yyyy HH:mm');
     doc.text(printDate, MARGIN, y);
 
     // Nombre del Negocio / Usuario (Derecha)
@@ -181,7 +197,7 @@ export const generateDetailedPDF = (report, reportType, dateRangeStr) => {
 
     const reportFileName = report.is_shift_report && report.shift_info
         ? `Reporte_Turno_${report.shift_info.number}.pdf`
-        : `Reporte_Ventas_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`;
+        : `Reporte_Ventas_${format(getEcuadorDate(), 'yyyyMMdd_HHmm')}.pdf`;
 
     doc.save(reportFileName);
 };

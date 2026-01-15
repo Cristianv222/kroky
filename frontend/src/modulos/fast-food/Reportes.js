@@ -12,7 +12,7 @@ import { format, subDays, startOfWeek, endOfWeek, startOfMonth, isWithinInterval
 import { es } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { formatCurrency, formatDate, getValidDate, generateDetailedPDF } from '../../utils/reportUtils';
+import { formatCurrency, formatDate, getValidDate, generateDetailedPDF, getEcuadorDate } from '../../utils/reportUtils';
 
 // ====================================================================
 // 1. Funciones de Ayuda (Estilos, Formato)
@@ -77,8 +77,8 @@ const Reportes = () => {
     const [currentReport, setCurrentReport] = useState(null);
     const [reportType, setReportType] = useState('daily');
     const [dateRange, setDateRange] = useState({
-        startDate: new Date(),
-        endDate: new Date()
+        startDate: getEcuadorDate(),
+        endDate: getEcuadorDate()
     });
     const [filterType, setFilterType] = useState('today');
     const [dashboardStats, setDashboardStats] = useState(null);
@@ -255,7 +255,7 @@ const Reportes = () => {
             setNoReportMessage('');
 
             console.log('=== INICIO fetchReports ===');
-            const today = new Date();
+            const today = getEcuadorDate();
             console.log('Fecha de hoy (cliente):', today.toLocaleDateString('es-MX'), today.toISOString());
 
             const listResponse = await api.get('/api/pos/daily-summaries/', {
@@ -573,7 +573,7 @@ const Reportes = () => {
                 setConnectionError(false);
 
                 // Inicialmente cargar el reporte de hoy si existe
-                const today = new Date();
+                const today = getEcuadorDate();
                 console.log('Fecha de hoy (cliente):', today.toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' }));
 
                 const todayStr = format(today, 'yyyy-MM-dd');
@@ -626,7 +626,7 @@ const Reportes = () => {
             setDebugInfo('');
 
             await api.post('/api/pos/daily-summaries/close_day/', {
-                date: format(new Date(), 'yyyy-MM-dd'),
+                date: format(getEcuadorDate(), 'yyyy-MM-dd'),
                 closing_notes: 'Cierre manual del día'
             }, {
                 baseURL: getFastFoodBaseURL(),
@@ -639,7 +639,7 @@ const Reportes = () => {
             await fetchDashboardStats();
 
             // Recargar el reporte de hoy
-            const today = new Date();
+            const today = getEcuadorDate();
             await loadDailyReport(today, true);
 
         } catch (err) {
@@ -654,7 +654,7 @@ const Reportes = () => {
     const applyQuickFilter = (filter) => {
         setFilterType(filter);
         setNoReportMessage('');
-        const today = new Date();
+        const today = getEcuadorDate();
         let newRange = { startDate: today, endDate: today };
         let newReportType = 'daily';
 
@@ -1164,7 +1164,22 @@ const Reportes = () => {
                     <p className="subtitle">Datos en tiempo real desde la base de datos.</p>
                 </div>
                 <div className="actions-group">
-                    {/* Botones de acción eliminados por solicitud */}
+                    <button
+                        onClick={() => {
+                            setLoading(true);
+                            // Forzar recarga completa de datos
+                            Promise.all([
+                                fetchDashboardStats(),
+                                fetchReports(),
+                                checkCurrentShift()
+                            ]).finally(() => setLoading(false));
+                        }}
+                        className="action-button secondary"
+                        title="Recargar todos los datos"
+                    >
+                        <span className="material-icons">refresh</span>
+                        Actualizar Datos
+                    </button>
                 </div>
             </div>
 

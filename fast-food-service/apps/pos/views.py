@@ -615,7 +615,9 @@ class DailySummaryViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'])
     def today(self, request):
-        today = timezone.now().date()
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
+        today = timezone.now().astimezone(ecuador_tz).date()
         
         try:
             summary = DailySummary.objects.get(date=today)
@@ -685,19 +687,28 @@ class DailySummaryViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
-        today = timezone.now().date()
+        import pytz
+        ecuador_tz = pytz.timezone('America/Guayaquil')
+        today = timezone.now().astimezone(ecuador_tz).date()
         yesterday = today - timedelta(days=1)
         
         from apps.orders.models import Order
         from .models import Shift 
         
+        from datetime import datetime, time
+        day_start = ecuador_tz.localize(datetime.combine(today, time.min))
+        day_end = ecuador_tz.localize(datetime.combine(today, time.max))
+        
         orders_today = Order.objects.filter(
-            created_at__date=today,
+            created_at__range=(day_start, day_end),
             status__in=['delivered', 'completed']
         )
         
+        yesterday_start = ecuador_tz.localize(datetime.combine(yesterday, time.min))
+        yesterday_end = ecuador_tz.localize(datetime.combine(yesterday, time.max))
+
         orders_yesterday = Order.objects.filter(
-            created_at__date=yesterday,
+            created_at__range=(yesterday_start, yesterday_end),
             status__in=['delivered', 'completed']
         )
         
@@ -720,8 +731,11 @@ class DailySummaryViewSet(viewsets.ReadOnlyModelViewSet):
         for i in range(7):
             day = today - timedelta(days=i)
             
+            loop_day_start = ecuador_tz.localize(datetime.combine(day, time.min))
+            loop_day_end = ecuador_tz.localize(datetime.combine(day, time.max))
+            
             orders = Order.objects.filter(
-                created_at__date=day,
+                created_at__range=(loop_day_start, loop_day_end),
                 status__in=['delivered', 'completed']
             )
             
